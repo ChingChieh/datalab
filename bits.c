@@ -128,14 +128,21 @@ int absVal(int x)
  */
 int addOK(int x, int y)
 {
-    /*
-    int tmp = ((x >> 31) ^ (y >> 31)) & 0x1;
+    int x_31 = x;
+    x_31 = x_31 >> 15;
+    x_31 = x_31 >> 16;
+    int y_31 = y;
+    y_31 = y_31 >> 15;
+    y_31 = y_31 >> 16;
+    int tmp = (x_31 ^ y_31) & 0x1;
     int num;
-    num = ((x + y) >> 31) & 0x1;
-    num = num ^ ((y >> 31) & 0x1);
+    num = x + y;
+    num = num >> 15;
+    num = num >> 16;
+    num = num & 0x1;
+    // num = ((x + y) >> 31) & 0x1;
+    num = num ^ (y_31 & 0x1);
     return tmp | !num;
-    */
-    return 42;
 }
 
 /*
@@ -268,7 +275,10 @@ int bitCount(int x)
  */
 int bitMask(int highbit, int lowbit)
 {
-    return 42;
+    int mask_h = (~0U) >> (31 - highbit);
+    int mask_l = (~0U) << lowbit;
+    mask_h = mask_h & mask_l;
+    return mask_h;
 }
 
 /*
