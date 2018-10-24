@@ -1,3 +1,5 @@
+#include <stdint.h>
+
 /*
  * Modified CS:APP Data Lab
  *
@@ -111,7 +113,9 @@ NOTES:
  */
 int absVal(int x)
 {
-    return 42;
+    int y = x >> 15;
+    y = y >> 16;
+    return (x ^ y) - y;
 }
 
 /*
@@ -124,6 +128,13 @@ int absVal(int x)
  */
 int addOK(int x, int y)
 {
+    /*
+    int tmp = ((x >> 31) ^ (y >> 31)) & 0x1;
+    int num;
+    num = ((x + y) >> 31) & 0x1;
+    num = num ^ ((y >> 31) & 0x1);
+    return tmp | !num;
+    */
     return 42;
 }
 
@@ -137,7 +148,12 @@ int addOK(int x, int y)
  */
 int allEvenBits(int x)
 {
-    return 42;
+    x = x & (x >> 16);
+    x = x & (x >> 8);
+    x = x & (x >> 4);
+    x = x & (x >> 2);
+    x = x & 0x1;
+    return x;
 }
 
 /*
@@ -150,7 +166,13 @@ int allEvenBits(int x)
  */
 int allOddBits(int x)
 {
-    return 42;
+    x = x & (x >> 16);
+    x = x & (x >> 8);
+    x = x & (x >> 4);
+    x = x & (x >> 2);
+    x = x & 0x2;
+    x = x >> 1;
+    return x;
 }
 
 /*
@@ -163,7 +185,12 @@ int allOddBits(int x)
  */
 int anyEvenBit(int x)
 {
-    return 42;
+    x = x | (x >> 16);
+    x = x | (x >> 8);
+    x = x | (x >> 4);
+    x = x | (x >> 2);
+    x = x & 0x1;
+    return x;
 }
 
 /*
@@ -176,7 +203,13 @@ int anyEvenBit(int x)
  */
 int anyOddBit(int x)
 {
-    return 42;
+    x = x | (x >> 16);
+    x = x | (x >> 8);
+    x = x | (x >> 4);
+    x = x | (x >> 2);
+    x = x & 0x2;
+    x = x >> 1;
+    return x;
 }
 
 /*
@@ -188,7 +221,14 @@ int anyOddBit(int x)
  */
 int bang(int x)
 {
-    return 42;
+    x = x | (x >> 16);
+    x = x | (x >> 8);
+    x = x | (x >> 4);
+    x = x | (x >> 2);
+    x = x | (x >> 1);
+    x = ~x;
+    x = x & 0x1;
+    return x;
 }
 
 /*
@@ -200,7 +240,8 @@ int bang(int x)
  */
 int bitAnd(int x, int y)
 {
-    return 42;
+    x = ~(~x | ~y);
+    return x;
 }
 
 /*
