@@ -418,11 +418,16 @@ int byteSwap(int x, int n, int m)
 {
     int tmp_n = n;
     int tmp_m = m;
-    n = (x >> (n * 8)) & 0xFF;
-    m = (x >> (m * 8)) & 0xFF;
-    x = x & ~(0xFF << (tmp_n * 8) | 0xFF << (tmp_m * 8));
-    x = x | (n << (tmp_m * 8));
-    x = x | (m << (tmp_n * 8));
+    n = (x >> n >> n >> n >> n >> n >> n >> n >> n) & 0xFF;
+    m = (x >> m >> m >> m >> m >> m >> m >> m >> m) & 0xFF;
+    x = x & ~(0xFF << tmp_n << tmp_n << tmp_n << tmp_n << tmp_n << tmp_n
+                   << tmp_n << tmp_n |
+              0xFF << tmp_m << tmp_m << tmp_m << tmp_m << tmp_m << tmp_m
+                   << tmp_m << tmp_m);
+    x = x | (n << tmp_m << tmp_m << tmp_m << tmp_m << tmp_m << tmp_m << tmp_m
+               << tmp_m);
+    x = x | (m << tmp_n << tmp_n << tmp_n << tmp_n << tmp_n << tmp_n << tmp_n
+               << tmp_n);
     return x;
 }
 
@@ -435,7 +440,10 @@ int byteSwap(int x, int n, int m)
  */
 int conditional(int x, int y, int z)
 {
-    return 42;
+    x = !x;
+    x = x << 15 << 16;
+    x = x >> 15 >> 16;
+    return (~x & y) | (x & z);
 }
 
 /*
