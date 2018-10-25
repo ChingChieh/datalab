@@ -416,7 +416,14 @@ int bitXor(int x, int y)
  */
 int byteSwap(int x, int n, int m)
 {
-    return 42;
+    int tmp_n = n;
+    int tmp_m = m;
+    n = (x >> (n * 8)) & 0xFF;
+    m = (x >> (m * 8)) & 0xFF;
+    x = x & ~(0xFF << (tmp_n * 8) | 0xFF << (tmp_m * 8));
+    x = x | (n << (tmp_m * 8));
+    x = x | (m << (tmp_n * 8));
+    return x;
 }
 
 /*
