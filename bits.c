@@ -260,7 +260,30 @@ int bitAnd(int x, int y)
  */
 int bitCount(int x)
 {
-    return 42;
+    int count, y, z;
+
+    y = x & (0x55 << 24 | 0x55 << 16 | 0x55 << 8 | 0x55);
+    z = (x >> 1) & (0x55 << 24 | 0x55 << 16 | 0x55 << 8 | 0x55);
+    count = y + z;
+
+    y = count & (0x33 << 24 | 0x33 << 16 | 0x33 << 8 | 0x33);
+    z = (count >> 2) & (0x33 << 24 | 0x33 << 16 | 0x33 << 8 | 0x33);
+    count = y + z;
+
+    y = count & (0x0F << 24 | 0x0F << 16 | 0x0F << 8 | 0x0F);
+    z = (count >> 4) & (0x0F << 24 | 0x0F << 16 | 0x0F << 8 | 0x0F);
+    count = y + z;
+
+    y = count & (0xFF << 16 | 0xFF);
+    z = (count >> 8) & (0xFF << 16 | 0xFF);
+    count = y + z;
+
+    y = count & (0xFF << 8 | 0xFF);
+    z = (count >> 16) & (0xFF << 8 | 0xFF);
+    count = y + z;
+
+
+    return count;
 }
 
 /*
