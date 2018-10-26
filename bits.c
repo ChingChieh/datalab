@@ -496,7 +496,7 @@ int distinctNegation(int x)
  */
 int dividePower2(int x, int n)
 {
-    return 42;
+    return (x + ((x >> 15 >> 16) & ((1 << n) + ~0))) >> n;
 }
 
 /*
@@ -507,7 +507,9 @@ int dividePower2(int x, int n)
  */
 int evenBits(void)
 {
-    return 42;
+    int num;
+    num = (0x55 << 24 | 0x55 << 16 | 0x55 << 8 | 0x55);
+    return num;
 }
 
 /*
