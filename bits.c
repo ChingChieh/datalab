@@ -298,7 +298,7 @@ int bitCount(int x)
  */
 int bitMask(int highbit, int lowbit)
 {
-    int mask_h = (~0U) >> (31 - highbit);
+    int mask_h = (~0U) >> (31 + (~highbit + 1));
     int mask_l = (~0U) << lowbit;
     mask_h = mask_h & mask_l;
     return mask_h;
@@ -540,10 +540,11 @@ int ezThreeFourths(int x)
  */
 int fitsBits(int x, int n)
 {
-    int a = (~0U << (n - 1));
+    n = n + ~0;
+    int a = (~0U << n);
     int b = a + ~x;
-    int c = (a >> (n - 1)) ^ (b >> (n - 1));
-    int d = 0 ^ (x >> (n - 1));
+    int c = (a >> n) ^ (b >> n);
+    int d = 0 ^ (x >> n);
     return !c ^ !d;
 }
 
@@ -575,7 +576,8 @@ int fitsShort(int x)
  */
 unsigned floatAbsVal(unsigned uf)
 {
-    return 42;
+    uf = uf & 0x7fffffff;
+    return uf;
 }
 
 /*
