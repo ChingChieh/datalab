@@ -634,7 +634,21 @@ unsigned floatInt2Float(int x)
  */
 int floatIsEqual(unsigned uf, unsigned ug)
 {
-    return 42;
+    int check_uf = ((uf >> 23) & 0xFF) ^ 0xFF;
+    check_uf = !check_uf;
+    int m_uf = (uf << 9) ^ 0;
+    if ((check_uf && m_uf)) {
+        return 0;
+    }
+    if (!(uf ^ ug)) {
+        return 1;
+    }
+    uf = uf << 1;
+    ug = ug << 1;
+    if (!(uf | ug)) {
+        return 1;
+    }
+    return 0;
 }
 
 /*
