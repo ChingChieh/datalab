@@ -558,9 +558,16 @@ int fitsBits(int x, int n)
  */
 int fitsShort(int x)
 {
+    /*
     int x_copy = x;
     x = (x >> 16 << 16) | (x >> 16);
     return ((!x) & !(x_copy >> 15 & 1)) ^ ((!(x + 1)) & (x_copy >> 15 & 1));
+    */
+    int x_positive = x >> 15;
+    int x_negative = x >> 15;
+    x_positive = !(x_positive ^ (0));
+    x_negative = !(x_negative ^ (~0));
+    return x_positive ^ x_negative;
 }
 
 /*
