@@ -416,18 +416,15 @@ int bitXor(int x, int y)
  */
 int byteSwap(int x, int n, int m)
 {
-    int tmp_n = n;
-    int tmp_m = m;
-    n = (x >> n >> n >> n >> n >> n >> n >> n >> n) & 0xFF;
-    m = (x >> m >> m >> m >> m >> m >> m >> m >> m) & 0xFF;
-    x = x & ~(0xFF << tmp_n << tmp_n << tmp_n << tmp_n << tmp_n << tmp_n
-                   << tmp_n << tmp_n |
-              0xFF << tmp_m << tmp_m << tmp_m << tmp_m << tmp_m << tmp_m
-                   << tmp_m << tmp_m);
-    x = x | (n << tmp_m << tmp_m << tmp_m << tmp_m << tmp_m << tmp_m << tmp_m
-               << tmp_m);
-    x = x | (m << tmp_n << tmp_n << tmp_n << tmp_n << tmp_n << tmp_n << tmp_n
-               << tmp_n);
+    n = n << 3;
+    m = m << 3;
+    int n_mask = 0xFF << n;
+    int m_mask = 0xFF << m;
+    int x_n = x & n_mask;
+    int x_m = x & m_mask;
+    x = (x & ~n_mask);
+    x = (x & ~m_mask);
+    x = x | (((x_n >> n) & 0xFF) << m) | (((x_m >> m) & 0xFF) << n);
     return x;
 }
 
