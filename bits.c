@@ -580,6 +580,12 @@ int fitsShort(int x)
  */
 unsigned floatAbsVal(unsigned uf)
 {
+    int check = ((uf >> 23) & 0xFF) ^ 0xFF;
+    check = !check;
+    int m = (uf << 9) ^ 0;
+    if (check && m) {
+        return uf;
+    }
     uf = uf & 0x7fffffff;
     return uf;
 }
