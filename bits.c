@@ -1005,7 +1005,9 @@ int isPallindrome(int x)
  */
 int isPositive(int x)
 {
-    return 42;
+    int tmp = x;
+    x = (x >> 15 >> 16) & 1;
+    return (!x) & (!!tmp);
 }
 
 /*
@@ -1030,7 +1032,8 @@ int isPower2(int x)
  */
 int isTmax(int x)
 {
-    return 42;
+    int tmax = (~0U) >> 1;
+    return !(x ^ tmax);
 }
 
 /*
@@ -1042,7 +1045,8 @@ int isTmax(int x)
  */
 int isTmin(int x)
 {
-    return 42;
+    int tmin = ((~0U) >> 1) + 1;
+    return !(x ^ tmin);
 }
 
 /*
@@ -1054,7 +1058,7 @@ int isTmin(int x)
  */
 int isZero(int x)
 {
-    return 42;
+    return !x;
 }
 
 /*
@@ -1067,7 +1071,7 @@ int isZero(int x)
  */
 int leastBitPos(int x)
 {
-    return 42;
+    return x + ~x + 1;
 }
 
 /*
@@ -1139,7 +1143,7 @@ int minimumOfTwo(int x, int y)
  */
 int minusOne(void)
 {
-    return 42;
+    return ~0;
 }
 
 /*
@@ -1167,7 +1171,7 @@ int multFiveEighths(int x)
  */
 int negate(int x)
 {
-    return 42;
+    return ~x + 1;
 }
 
 /*
@@ -1178,7 +1182,7 @@ int negate(int x)
  */
 int oddBits(void)
 {
-    return 42;
+    return 0xAA << 24 | 0xAA << 16 | 0xAA << 8 | 0xAA;
 }
 
 /*
@@ -1289,7 +1293,7 @@ int satMul3(int x)
  */
 int sign(int x)
 {
-    return 42;
+    return (x >> 15 >> 16) | (!!x);
 }
 
 /*
@@ -1338,7 +1342,7 @@ int subtractionOK(int x, int y)
  */
 int thirdBits(void)
 {
-    return 42;
+    return 0x49 | 0x92 << 8 | 0x24 << 16 | 0x49 << 24;
 }
 
 /*
