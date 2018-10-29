@@ -634,21 +634,26 @@ unsigned floatInt2Float(int x)
  */
 int floatIsEqual(unsigned uf, unsigned ug)
 {
-    int check_uf = ((uf >> 23) & 0xFF) ^ 0xFF;
-    check_uf = !check_uf;
-    int m_uf = (uf << 9) ^ 0;
-    if ((check_uf && m_uf)) {
+    /*
+    unsigned uf_left1 = uf << 1;
+    unsigned ug_left1 = ug << 1;
+    if (uf_left1 ^ ug_left1) {
         return 0;
     }
-    if (!(uf ^ ug)) {
+    if (!(uf_left1 | ug_left1)) {
         return 1;
     }
-    uf = uf << 1;
-    ug = ug << 1;
-    if (!(uf | ug)) {
-        return 1;
+    unsigned check_uf = (uf & 0x7F800000) >> 23;
+    check_uf = !(check_uf ^ 0xFF);
+    if (check_uf && (uf << 9)) {
+        return 0;
     }
-    return 0;
+    if(uf-ug){
+        return 0;
+    }
+    return 1;
+    */
+    return 42;
 }
 
 /*
@@ -664,7 +669,33 @@ int floatIsEqual(unsigned uf, unsigned ug)
  */
 int floatIsLess(unsigned uf, unsigned ug)
 {
-    return 42;
+    if (!((uf | ug) + 0x80000000)) {
+        return 0;
+    }
+    int check = ((uf >> 23) & 0xFF) ^ 0xFF;
+    check = !check;
+    int m = (uf << 9);
+    if (check && m) {
+        return 0;
+    }
+    check = ((ug >> 23) & 0xFF) ^ 0xFF;
+    check = !check;
+    m = (ug << 9);
+    if (check && m) {
+        return 0;
+    }
+    if ((uf >> 31) == 1 && (ug >> 31) == 0) {
+        return 0;
+    }
+    if ((uf >> 31) == 0 && (ug >> 31) == 1) {
+        return 1;
+    }
+    unsigned diff = uf - ug;
+    if (((diff >> 31) ^ 1) & uf) {
+        return 1;
+    }
+
+    return 0;
 }
 
 /*
@@ -680,7 +711,11 @@ int floatIsLess(unsigned uf, unsigned ug)
  */
 unsigned floatNegate(unsigned uf)
 {
-    return 42;
+    unsigned nan = (((uf >> 23) & 0xFF) ^ 0xFF);
+    if (!nan && (uf << 9)) {
+        return uf;
+    }
+    return uf ^ 0x80000000;
 }
 
 /*
@@ -774,7 +809,8 @@ unsigned floatUnsigned2Float(unsigned u)
  */
 int getByte(int x, int n)
 {
-    return 42;
+    x = (x >> (n << 3)) & 0xFF;
+    return x;
 }
 
 /*
@@ -818,7 +854,7 @@ int howManyBits(int x)
  */
 int implication(int x, int y)
 {
-    return 42;
+    return (!(x ^ y)) | y;
 }
 
 /*
@@ -845,7 +881,10 @@ int intLog2(int x)
  */
 int isAsciiDigit(int x)
 {
-    return 42;
+    int xminus0x30 = ((x + (~0x30 + 1)) >> 15 >> 16) & 1;
+    int xminus0x39 = ((x + (~0x39)) >> 15 >> 16) & 1;
+
+    return (!xminus0x30) & xminus0x39;
 }
 
 /*
@@ -857,7 +896,7 @@ int isAsciiDigit(int x)
  */
 int isEqual(int x, int y)
 {
-    return 42;
+    return !(x + ~y + 1);
 }
 
 /*
@@ -905,7 +944,7 @@ int isLessOrEqual(int x, int y)
  */
 int isNegative(int x)
 {
-    return 42;
+    return (x >> 15 >> 16) & 1;
 }
 
 /*
@@ -917,7 +956,7 @@ int isNegative(int x)
  */
 int isNonNegative(int x)
 {
-    return 42;
+    return !((x >> 15 >> 16) & 1);
 }
 
 /*
@@ -930,7 +969,7 @@ int isNonNegative(int x)
  */
 int isNonZero(int x)
 {
-    return 42;
+    return !!(x ^ 0);
 }
 
 /*
@@ -942,7 +981,7 @@ int isNonZero(int x)
  */
 int isNotEqual(int x, int y)
 {
-    return 42;
+    return !!((x + ~y) + 1);
 }
 
 /*
