@@ -1353,7 +1353,7 @@ int thirdBits(void)
  */
 int tmax(void)
 {
-    return 42;
+    return ~0U >> 1;
 }
 
 /*
@@ -1364,7 +1364,7 @@ int tmax(void)
  */
 int tmin(void)
 {
-    return 42;
+    return (~0U >> 1) + 1;
 }
 
 /*
@@ -1421,5 +1421,6 @@ int twosComp2SignMag(int x)
  */
 int upperBits(int n)
 {
-    return 42;
+    int diff = 32 + (~n + 1);
+    return (~0 << diff) + !n;
 }
