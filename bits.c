@@ -1147,7 +1147,7 @@ int leftBitCount(int x)
  */
 int logicalNeg(int x)
 {
-    return 42;
+    return (~((~x + 1) | x) >> 31) & 1;
 }
 
 /*
@@ -1160,7 +1160,9 @@ int logicalNeg(int x)
  */
 int logicalShift(int x, int n)
 {
-    return 42;
+    x = x >> n;
+    x = x & ((0xFFU << 24 | 0xFFU << 16 | 0xFFU << 8 | 0xFFU) >> n);
+    return x;
 }
 
 /*
@@ -1171,6 +1173,12 @@ int logicalShift(int x, int n)
  */
 int maximumOfTwo(int x, int y)
 {
+    /*
+    int x_sign = (x >> 15 >> 16) & 1;
+    int y_sign = (x >> 15 >> 16) & 1;
+    int diff_sign = ((((x + ~y + 1) >> 15 >> 16) & 1) << 15 << 16) >> 15 >> 16;
+    return x & diff_sign
+    */
     return 42;
 }
 
