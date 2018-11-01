@@ -1353,27 +1353,12 @@ int satAdd(int x, int y)
  */
 int satMul2(int x)
 {
-    /*
-    int Tmax_check = (0x3FFFFFFF + ~x + 1) >> 31;
-    int Tmin_check = ~((0xC0000000 + ~x + 1) >> 31);
-    int result = x << 2;
-    return (result & ~(Tmax_check | Tmin_check)) | (0x7FFFFFFF & Tmax_check) |
-    (0x80000000 & Tmin_check);
-
-    if(x >= 0x40000000 && x <= 0x7fffffff){
-        return 0x7fffffff;
-    }
-    if(x >= 0x80000000 && x < 0xC0000001){
-        return 0x80000000;
-    }
-    return x + x;
-    */
     int max = ~0U >> 1;
     int min = 0x80 << 24;
     int sign = x >> 31;
     int x_1 = x >> 1;
-    int new_x = ((x_1 + x_1) >> 30);
-    new_x = (((new_x >> 1) ^ new_x)) << 31 >> 31;
+    int new_x = (x_1 + x_1);
+    new_x = (((new_x << 1) ^ new_x)) >> 31;
     return ((x + x) & ~(new_x)) | (max & new_x & (~sign)) |
            (min & new_x & sign);
 }
