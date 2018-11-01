@@ -1174,10 +1174,15 @@ int logicalShift(int x, int n)
 int maximumOfTwo(int x, int y)
 {
     /*
-    int x_sign = (x >> 15 >> 16) & 1;
-    int y_sign = (x >> 15 >> 16) & 1;
-    int diff_sign = ((((x + ~y + 1) >> 15 >> 16) & 1) << 15 << 16) >> 15 >> 16;
-    return x & diff_sign
+    int x_sign = (x >> 31) & 1;
+    int y_sign = (y >> 31) & 1;
+
+    int sign_diff_1 = (x_sign + ~y_sign + 1);
+    int sign_diff_2 = (y_sign + ~x_sign + 1);
+    // If x_sign-y_sign = 1,then sign_diff = 0xFFFFFFFF
+    // else sign_diff = 0x00000000;
+    int diff = (x + ~y) >> 31;
+    return (x & (~diff | sign_diff)) | (y & (diff | sign_diff));
     */
     return 42;
 }
@@ -1217,7 +1222,9 @@ int minusOne(void)
  */
 int multFiveEighths(int x)
 {
-    return 42;
+    x = x + x + x + x + x;
+    x = (x + ((x >> 31) & ((1 << 3) + ~0))) >> 3;
+    return x;
 }
 
 /*
@@ -1267,7 +1274,10 @@ int remainderPower2(int x, int n)
  */
 int replaceByte(int x, int n, int c)
 {
-    return 42;
+    int mask = ~(0xFF << (n << 3));
+    x = x & mask;
+    x = x | (c << (n << 3));
+    return x;
 }
 
 /*
@@ -1280,20 +1290,32 @@ int replaceByte(int x, int n, int c)
  */
 int rotateLeft(int x, int n)
 {
-    return 42;
+    int diff = 32 + ~n + 1;
+    int x_cpy = x >> diff;
+    int mask = ~0U >> diff;
+    x_cpy = x_cpy & mask;
+    x = x << n;
+    x = x | x_cpy;
+    return x;
 }
 
 /*
  * rotateRight - Rotate x to the right by n
  *               Can assume that 0 <= n <= 31
- *   Examples: rotateRight(0x87654321, 4) = 0x76543218
+ *   Examples: rotateRight(0x87654321, 4) = 0x18765432
  *   Legal ops: ~ & ^ | + << >> !
  *   Max ops: 25
  *   Rating: 3
  */
 int rotateRight(int x, int n)
 {
-    return 42;
+    int diff = 32 + ~n + 1;
+    int mask = ~0U >> n;
+    int x_tail = x << diff;
+    x = x >> n;
+    x = x & mask;
+    x = x | x_tail;
+    return x;
 }
 
 /*
@@ -1308,7 +1330,16 @@ int rotateRight(int x, int n)
  */
 int satAdd(int x, int y)
 {
-    return 42;
+    int neg_min = 0x80 << 24;
+    int pos_max = ~0 ^ neg_min;
+    int result = x + y;
+    int result_sign = (result >> 31) & 1;
+    int x_31 = x >> 31;
+    int y_31 = y >> 31;
+    int pos_over = ((!(x_31 | y_31)) & result_sign) << 31 >> 31;
+    int neg_over = ((!((x_31 & y_31) + 1)) & !result_sign) << 31 >> 31;
+    return (result & ~(pos_over | neg_over)) | (pos_max & pos_over) |
+           (neg_min & neg_over);
 }
 
 /*
@@ -1322,7 +1353,29 @@ int satAdd(int x, int y)
  */
 int satMul2(int x)
 {
-    return 42;
+    /*
+    int Tmax_check = (0x3FFFFFFF + ~x + 1) >> 31;
+    int Tmin_check = ~((0xC0000000 + ~x + 1) >> 31);
+    int result = x << 2;
+    return (result & ~(Tmax_check | Tmin_check)) | (0x7FFFFFFF & Tmax_check) |
+    (0x80000000 & Tmin_check);
+
+    if(x >= 0x40000000 && x <= 0x7fffffff){
+        return 0x7fffffff;
+    }
+    if(x >= 0x80000000 && x < 0xC0000001){
+        return 0x80000000;
+    }
+    return x + x;
+    */
+    int max = ~0U >> 1;
+    int min = 0x80 << 24;
+    int sign = x >> 31;
+    int x_1 = x >> 1;
+    int new_x = ((x_1 + x_1) >> 30);
+    new_x = (((new_x >> 1) ^ new_x)) << 31 >> 31;
+    return ((x + x) & ~(new_x)) | (max & new_x & (~sign)) |
+           (min & new_x & sign);
 }
 
 /*
