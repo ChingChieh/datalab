@@ -1379,7 +1379,14 @@ int satMul2(int x)
  */
 int satMul3(int x)
 {
-    return 42;
+    int max = ~0U >> 1;
+    int min = 0x80 << 24;
+    int sign = x >> 31;
+    int x_1 = x >> 1;
+    int new_x = (x_1 + x_1 + x_1);
+    new_x = (((new_x << 1) ^ new_x)) >> 31;
+    return ((x + x + x) & ~(new_x)) | (max & new_x & (~sign)) |
+           (min & new_x & sign);
 }
 
 /*
