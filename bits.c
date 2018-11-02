@@ -1263,7 +1263,15 @@ int oddBits(void)
  */
 int remainderPower2(int x, int n)
 {
-    return 42;
+    // positive num 整除  -> 0x00000000
+    // positive num 不整除-> 0x000.....
+    // negative num 整除  -> 0x00000000
+    // negative num 不整除-> 0x1111....
+    // if 整除 then fit = 0x00000000 else fit = 0xFFFFFFFF
+    int remainder = x & ~(~0 << n);
+    int fill = ((x >> 31)) << n;
+    int fit = ~((!remainder) << 31 >> 31);
+    return (fill | remainder) & fit;
 }
 
 /*
@@ -1412,7 +1420,11 @@ int sign(int x)
  */
 int signMag2TwosComp(int x)
 {
-    return 42;
+    int min = 1 << 31;
+    int sign = (x >> 31) + !(min ^ x);
+    int pos_x = x & (~0U >> 1);
+    int neg_x = ~pos_x + 1;
+    return (pos_x & ~sign) | (neg_x & sign);
 }
 
 /*
