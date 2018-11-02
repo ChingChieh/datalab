@@ -1435,7 +1435,7 @@ int signMag2TwosComp(int x)
  */
 int specialBits(void)
 {
-    return 42;
+    return ~0 ^ (0xD7 << 14);
 }
 
 /*
@@ -1448,7 +1448,10 @@ int specialBits(void)
  */
 int subtractionOK(int x, int y)
 {
-    return 42;
+    int x_sign = x >> 31;
+    int y_sign = y >> 31;
+    int diff = (x + ~y + 1) >> 31;
+    return (~(x_sign ^ diff) & 1) | !(x_sign ^ y_sign);
 }
 
 /*
@@ -1512,6 +1515,16 @@ int trueFiveEighths(int x)
  */
 int trueThreeFourths(int x)
 {
+    /*
+    int sign = x >> 31;
+    int Allone = ~0;
+    int xHalf = (x + (sign & ((1 << 1) + Allone))) >> 1;
+    int xHalf_remain = x & 1;
+    int xOneFourths = (x + (sign & ((1 << 2) + Allone))) >> 2;
+    int xOneFourths_remain = x & 3;
+    int bias = ((xHalf_remain << 1) + xOneFourths_remain) >> 2;
+    return xHalf + xOneFourths + bias;
+    */
     return 42;
 }
 
@@ -1526,7 +1539,11 @@ int trueThreeFourths(int x)
  */
 int twosComp2SignMag(int x)
 {
-    return 42;
+    // If x < 0 then return xConvert else return x
+    int negMark = 1 << 31;
+    int xConvert = (~x + 1) | negMark;
+    int decision = x >> 31;
+    return (x & ~decision) | (xConvert & decision);
 }
 
 /*
