@@ -1173,18 +1173,14 @@ int logicalShift(int x, int n)
  */
 int maximumOfTwo(int x, int y)
 {
-    /*
-    int x_sign = (x >> 31) & 1;
-    int y_sign = (y >> 31) & 1;
-
-    int sign_diff_1 = (x_sign + ~y_sign + 1);
-    int sign_diff_2 = (y_sign + ~x_sign + 1);
-    // If x_sign-y_sign = 1,then sign_diff = 0xFFFFFFFF
-    // else sign_diff = 0x00000000;
-    int diff = (x + ~y) >> 31;
-    return (x & (~diff | sign_diff)) | (y & (diff | sign_diff));
-    */
-    return 42;
+    int xSign = x >> 31;
+    int ySign = y >> 31;
+    int SignEqual =
+        (xSign ^ ySign);  // If sign is equal, SignEqual will be 0x00000000
+    int XminusY = (x + ~y) >> 31;
+    int YminusX = (y + ~x) >> 31;
+    return (x & ((~SignEqual & YminusX) | (SignEqual & ySign))) |
+           (y & ((~SignEqual & XminusY) | (SignEqual & xSign)));
 }
 
 /*
@@ -1195,7 +1191,14 @@ int maximumOfTwo(int x, int y)
  */
 int minimumOfTwo(int x, int y)
 {
-    return 42;
+    int xSign = x >> 31;
+    int ySign = y >> 31;
+    int SignEqual =
+        (xSign ^ ySign);  // If sign is equal, SignEqual will be 0x00000000
+    int XminusY = (x + ~y) >> 31;
+    int YminusX = (y + ~x) >> 31;
+    return (x & ((~SignEqual & XminusY) | (SignEqual & xSign))) |
+           (y & ((~SignEqual & YminusX) | (SignEqual & ySign)));
 }
 
 /*
