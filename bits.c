@@ -454,7 +454,31 @@ int conditional(int x, int y, int z)
  */
 int countLeadingZero(int x)
 {
-    return 42;
+    int leading16_check =
+        !((x >> 16) ^ 0);  // If leading 16 zero, check31to16 will be 1
+    int leading16 = leading16_check << 4;
+    x = x << leading16;
+
+    int leading8_check = !((x >> 24) ^ 0);
+    int leading8 = leading8_check << 3;
+    x = x << leading8;
+
+    int leading4_check = !((x >> 28) ^ 0);
+    int leading4 = leading4_check << 2;
+    x = x << leading4;
+
+    int leading2_check = !((x >> 30) ^ 0);
+    int leading2 = leading2_check << 1;
+    x = x << leading2;
+
+    int leading1_check = !((x >> 31) ^ 0);
+    x = x << leading1_check;
+
+    int remain1_check = !((x >> 31) ^ 0);
+    x = x << remain1_check;
+
+    return leading16 + leading8 + leading4 + leading2 + leading1_check +
+           remain1_check;
 }
 
 /*
@@ -493,7 +517,7 @@ int distinctNegation(int x)
  */
 int dividePower2(int x, int n)
 {
-    return (x + ((x >> 15 >> 16) & ((1 << n) + ~0))) >> n;
+    return (x + ((x >> 31) & ((1 << n) + ~0))) >> n;
 }
 
 /*
@@ -1134,7 +1158,32 @@ int leastBitPos(int x)
  */
 int leftBitCount(int x)
 {
-    return 42;
+    x = ~x;
+    int leading16_check =
+        !((x >> 16) ^ 0);  // If leading 16 zero, check31to16 will be 1
+    int leading16 = leading16_check << 4;
+    x = x << leading16;
+
+    int leading8_check = !((x >> 24) ^ 0);
+    int leading8 = leading8_check << 3;
+    x = x << leading8;
+
+    int leading4_check = !((x >> 28) ^ 0);
+    int leading4 = leading4_check << 2;
+    x = x << leading4;
+
+    int leading2_check = !((x >> 30) ^ 0);
+    int leading2 = leading2_check << 1;
+    x = x << leading2;
+
+    int leading1_check = !((x >> 31) ^ 0);
+    x = x << leading1_check;
+
+    int remain1_check = !((x >> 31) ^ 0);
+    x = x << remain1_check;
+
+    return leading16 + leading8 + leading4 + leading2 + leading1_check +
+           remain1_check;
 }
 
 /*
@@ -1500,7 +1549,9 @@ int tmin(void)
  */
 int trueFiveEighths(int x)
 {
-    return 42;
+    int tail = x & 0x7;
+    x = x >> 3;
+    return (x << 2) + x + (((tail << 2) + tail + ((x >> 31) & 0x7)) >> 3);
 }
 
 /*
@@ -1520,12 +1571,14 @@ int trueThreeFourths(int x)
     int Allone = ~0;
     int xHalf = (x + (sign & ((1 << 1) + Allone))) >> 1;
     int xHalf_remain = x & 1;
-    int xOneFourths = (x + (sign & ((1 << 2) + Allone))) >> 2;
+    int xOneFourths = x >> 2;
     int xOneFourths_remain = x & 3;
     int bias = ((xHalf_remain << 1) + xOneFourths_remain) >> 2;
-    return xHalf + xOneFourths + bias;
+    return xHalf + xOneFourths + (bias & ~sign) + (xHalf_remain & sign);
     */
-    return 42;
+    int tail = x & 0x3;
+    x = x >> 2;
+    return (x << 1) + x + (((tail << 1) + tail + ((x >> 31) & 0x3)) >> 2);
 }
 
 /*
