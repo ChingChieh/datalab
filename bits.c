@@ -140,7 +140,6 @@ int addOK(int x, int y)
     num = num >> 15;
     num = num >> 16;
     num = num & 0x1;
-    // num = ((x + y) >> 31) & 0x1;
     num = num ^ (y_31 & 0x1);
     return tmp | !num;
 }
@@ -814,7 +813,22 @@ unsigned floatScale1d2(unsigned uf)
  */
 unsigned floatScale2(unsigned uf)
 {
-    return 42;
+    // NaN mean the exp is FF
+    unsigned nan = !((uf >> 23 << 24) ^ (0xFF << 24));
+    if (nan) {
+        return uf;
+    }
+    if (!(uf << 1)) {
+        return uf;
+    }
+    if (!((uf >> 23 << 24) ^ 0)) {
+        int mask_tail = ~0 << 23;
+        int tail = uf & ~mask_tail;
+        uf = uf & mask_tail;
+        tail = tail << 1;
+        return uf | tail;
+    }
+    return (uf + (1 << 23));
 }
 
 /*
@@ -830,7 +844,27 @@ unsigned floatScale2(unsigned uf)
  */
 unsigned floatScale64(unsigned uf)
 {
-    return 42;
+    // NaN mean the exp is FF
+    unsigned nan = !((uf >> 23 << 24) ^ (0xFF << 24));
+    if (nan) {
+        return uf;
+    }
+    if (!(uf << 1)) {
+        return uf;
+    }
+    if (!((uf >> 23 << 24) ^ 0)) {
+        int mask_tail = ~0 << 23;
+        int tail = uf & ~mask_tail;
+        uf = uf & mask_tail;
+        tail = tail << 6;
+        return uf | tail;
+    }
+    int result = (uf + (1 << 24) + (1 << 25));
+    int tmp = uf;
+    if ((result ^ uf) >> 31) {
+        return (0x7F800000 & ~(tmp >> 31)) | (0xFF800000 & (tmp >> 31));
+    }
+    return result;
 }
 
 /*
@@ -844,7 +878,37 @@ unsigned floatScale64(unsigned uf)
  */
 unsigned floatUnsigned2Float(unsigned u)
 {
-    return 42;
+    if (u == 0) {
+        return 0;
+    }
+    if (u == 0x80000000) {
+        return 0x4f000000;
+    }
+    int tmp = u;
+    int counter = 31;
+    while (tmp > 0) {
+        tmp = tmp << 1;
+        counter--;
+    }
+    int exp = (127 + counter) << 23;
+    int tail;
+    if (counter > 23) {
+        /*
+        if((tmp >> 8) & 1){
+            unsigned bias = (1 << 7);
+            tail = (((tmp + bias) >> 8) & 0x7FFFFF);
+        } else {
+            tail = ((tmp >> 8) & 0x7FFFFF);
+        }
+        */
+        int bias = ((tmp & 0xFF) >= 0x80) && ((tmp >> 8) & 1);
+        int bias_2 = ((tmp & 0xFF) > 0x80) && !((tmp >> 8) & 1);
+        tail = (((tmp) >> 8) & 0x7FFFFF);
+        tail = tail + bias + bias_2;
+    } else {
+        tail = ((tmp >> 8) & 0x7FFFFF);
+    }
+    return exp | tail;
 }
 
 /*
