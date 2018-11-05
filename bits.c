@@ -698,16 +698,14 @@ unsigned floatInt2Float(int x)
  */
 int floatIsEqual(unsigned uf, unsigned ug)
 {
-    /*
     int ufleft1 = uf << 1;
     int ugleft1 = ug << 1;
-    if(ufleft1 > 0xFF000000 || ugleft1 > 0xFF000000){
+    if (ufleft1 > 0xFF000000 || ugleft1 > 0xFF000000) {
         return 0;
     }
-    if(ufleft1 == ugleft1 && ufleft1 == 0){
+    if (ufleft1 == ugleft1 && ufleft1 == 0) {
         return 1;
     }
-    */
     return uf == ug;
 }
 
@@ -724,7 +722,6 @@ int floatIsEqual(unsigned uf, unsigned ug)
  */
 int floatIsLess(unsigned uf, unsigned ug)
 {
-    /*
     unsigned fIsNan = (uf << 1) > 0xFF000000;
     unsigned gIsNan = (ug << 1) > 0xFF000000;
     if (fIsNan || gIsNan) {
@@ -749,7 +746,6 @@ int floatIsLess(unsigned uf, unsigned ug)
     if (!g_sign) {
         return ug > uf;
     }
-    */
     return 0;
 }
 
@@ -789,16 +785,14 @@ unsigned floatNegate(unsigned uf)
  */
 unsigned floatPower2(int x)
 {
-    /*
-    if(x < -127) {
+    if (x < -127) {
         return 0;
     }
-    if(x > 128) {
+    if (x > 128) {
         return 0x7f800000;
     }
     x += 127;
     x = x << 23;
-    */
     return x;
 }
 
