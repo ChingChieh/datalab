@@ -660,34 +660,29 @@ int floatFloat2Int(unsigned uf)
  */
 unsigned floatInt2Float(int x)
 {
-    int s_ = x & 0x80000000;
-    int n_ = 30;
-    if (!x)
+    if (!x) {
         return 0;
-    if (x == 0x80000000)
-        return 0xcf000000;
-    if (s_)
-        x = ~x + 1;
-    while (!(x & (1 << n_)))
-        n_--;
-    if (n_ <= 23)
-        x <<= (23 - n_);
-    else {
-        x += (1 << (n_ - 24));
-        int index = x << (55 - n_);
-        if (index)
-            ;
-        else
-            x &= (0xffffffff << (n_ - 22));
-        if (x & (1 << n_))
-            ;
-        else
-            n_++;
-        x >>= (n_ - 23);
     }
-    x = x & 0x007fffff;
-    n_ = (n_ + 127) << 23;
-    return x | n_ | s_;
+    if (x == 0x80000000) {
+        return 0xcf000000;
+    }
+    unsigned sign = x & 0x80000000;
+    int xChangToPositive = (x ^ (x >> 31)) + (sign >> 31);
+    int LeftMostPos = 31;
+    while (xChangToPositive > 0) {
+        xChangToPositive = xChangToPositive << 1;
+        LeftMostPos--;
+    }
+    int exp = (127 + LeftMostPos) << 23;
+    int tail = (xChangToPositive >> 8) & 0x7FFFFF;
+    if (LeftMostPos > 23) {  // Check for rounding to even
+        int lastbit = (xChangToPositive & 0xFF);
+        int shift8 = (xChangToPositive >> 8) & 1;
+        int bias = (lastbit >= 0x80) && shift8;
+        int bias_2 = (lastbit > 0x80) && !shift8;
+        tail = tail + bias + bias_2;
+    }
+    return sign | (exp + tail);
 }
 
 /*
@@ -729,6 +724,7 @@ int floatIsEqual(unsigned uf, unsigned ug)
  */
 int floatIsLess(unsigned uf, unsigned ug)
 {
+    /*
     unsigned fIsNan = (uf << 1) > 0xFF000000;
     unsigned gIsNan = (ug << 1) > 0xFF000000;
     if (fIsNan || gIsNan) {
@@ -753,6 +749,7 @@ int floatIsLess(unsigned uf, unsigned ug)
     if (!g_sign) {
         return ug > uf;
     }
+    */
     return 0;
 }
 
@@ -793,8 +790,12 @@ unsigned floatNegate(unsigned uf)
 unsigned floatPower2(int x)
 {
     /*
-    if(x < -127) return 0;
-    if(x > 128) return 0x7f800000;
+    if(x < -127) {
+        return 0;
+    }
+    if(x > 128) {
+        return 0x7f800000;
+    }
     x += 127;
     x = x << 23;
     */
@@ -814,7 +815,30 @@ unsigned floatPower2(int x)
  */
 unsigned floatScale1d2(unsigned uf)
 {
-    return 42;
+    int sign = uf & 0x80000000;
+    unsigned fLeftShift1 = uf << 1;
+    if (fLeftShift1 >= 0xFF000000) {
+        return uf;
+    }
+    if (!(fLeftShift1 ^ 0)) {
+        return (0 | sign);
+    }
+    int exp = (uf >> 23) & 0xFF;
+    int tail = uf & 0x7FFFFF;
+    if (exp < 2) {
+        int tail_0 = tail & 1;
+        int tail_1 = (tail >> 1) & 1;
+        tail = tail >> 1;
+        tail += tail_0 & tail_1;
+        if (exp == 1) {
+            tail += 0x400000;
+            exp--;
+        }
+    } else {
+        exp = exp - 1;
+    }
+    exp = exp << 23;
+    return sign | exp | tail;
 }
 
 /*
@@ -830,7 +854,6 @@ unsigned floatScale1d2(unsigned uf)
  */
 unsigned floatScale2(unsigned uf)
 {
-    // NaN mean the exp is FF
     unsigned nan = !((uf >> 23 << 24) ^ (0xFF << 24));
     if (nan) {
         return uf;
@@ -861,27 +884,37 @@ unsigned floatScale2(unsigned uf)
  */
 unsigned floatScale64(unsigned uf)
 {
-    // NaN mean the exp is FF
-    unsigned nan = !((uf >> 23 << 24) ^ (0xFF << 24));
+    unsigned sign = uf & 0x80000000;
+    unsigned fLeftShift1 = uf << 1;
+    unsigned nan = fLeftShift1 >= 0xFF000000;
     if (nan) {
         return uf;
     }
-    if (!(uf << 1)) {
+    if (!fLeftShift1) {
         return uf;
     }
-    if (!((uf >> 23 << 24) ^ 0)) {
-        int mask_tail = ~0 << 23;
-        int tail = uf & ~mask_tail;
-        uf = uf & mask_tail;
-        tail = tail << 6;
-        return uf | tail;
+    unsigned exp = (uf >> 23) & 0xFF;
+    unsigned tail = uf & 0x7FFFFF;
+    if (exp + 6 > 255) {
+        return 0x7f800000 | sign;
     }
-    int result = (uf + (1 << 24) + (1 << 25));
-    int tmp = uf;
-    if ((result ^ uf) >> 31) {
-        return (0x7F800000 & ~(tmp >> 31)) | (0xFF800000 & (tmp >> 31));
+    if (!(uf & 0x7F800000)) {  // Denormalize
+        int counter = 6;
+        while (counter) {
+            tail = tail << 1;
+            if (tail > 0x7FFFFF) {
+                break;
+            }
+            counter--;
+        }
+        exp = counter;
+        tail = tail & 0x7FFFFF;
+    } else {  // Normal case
+        exp = exp + 6;
     }
-    return result;
+    exp = exp << 23;
+
+    return sign | exp | tail;
 }
 
 /*
@@ -952,7 +985,36 @@ int getByte(int x, int n)
  */
 int greatestBitPos(int x)
 {
-    return 42;
+    if (!x) {
+        return 0;
+    }
+    int leading16_check =
+        !((x >> 16) ^ 0);  // If leading 16 zero, check31to16 will be 1
+    int leading16 = leading16_check << 4;
+    x = x << leading16;
+
+    int leading8_check = !((x >> 24) ^ 0);
+    int leading8 = leading8_check << 3;
+    x = x << leading8;
+
+    int leading4_check = !((x >> 28) ^ 0);
+    int leading4 = leading4_check << 2;
+    x = x << leading4;
+
+    int leading2_check = !((x >> 30) ^ 0);
+    int leading2 = leading2_check << 1;
+    x = x << leading2;
+
+    int leading1_check = !((x >> 31) ^ 0);
+    x = x << leading1_check;
+
+    int remain1_check = !((x >> 31) ^ 0);
+    x = x << remain1_check;
+
+    int leadingZero = leading16 + leading8 + leading4 + leading2 +
+                      leading1_check + remain1_check;
+    int one_pos = 31 + ~leadingZero + 1;
+    return 1 << one_pos;
 }
 
 /* howManyBits - return the minimum number of bits required to represent x in
@@ -969,7 +1031,35 @@ int greatestBitPos(int x)
  */
 int howManyBits(int x)
 {
-    return 0;
+    int xSign = x >> 31;
+    x = x ^ (~0 & xSign);
+    int leading16_check =
+        !((x >> 16) ^ 0);  // If leading 16 zero, check31to16 will be 1
+    int leading16 = leading16_check << 4;
+    x = x << leading16;
+
+    int leading8_check = !((x >> 24) ^ 0);
+    int leading8 = leading8_check << 3;
+    x = x << leading8;
+
+    int leading4_check = !((x >> 28) ^ 0);
+    int leading4 = leading4_check << 2;
+    x = x << leading4;
+
+    int leading2_check = !((x >> 30) ^ 0);
+    int leading2 = leading2_check << 1;
+    x = x << leading2;
+
+    int leading1_check = !((x >> 31) ^ 0);
+    x = x << leading1_check;
+
+    int remain1_check = !((x >> 31) ^ 0);
+    x = x << remain1_check;
+
+    int leadingZero = leading16 + leading8 + leading4 + leading2 +
+                      leading1_check + remain1_check;
+    int TotalNeedBits = 32 + ~leadingZero + 2;
+    return TotalNeedBits;
 }
 
 /*
@@ -995,7 +1085,33 @@ int implication(int x, int y)
  */
 int intLog2(int x)
 {
-    return 42;
+    int leading16_check =
+        !((x >> 16) ^ 0);  // If leading 16 zero, check31to16 will be 1
+    int leading16 = leading16_check << 4;
+    x = x << leading16;
+
+    int leading8_check = !((x >> 24) ^ 0);
+    int leading8 = leading8_check << 3;
+    x = x << leading8;
+
+    int leading4_check = !((x >> 28) ^ 0);
+    int leading4 = leading4_check << 2;
+    x = x << leading4;
+
+    int leading2_check = !((x >> 30) ^ 0);
+    int leading2 = leading2_check << 1;
+    x = x << leading2;
+
+    int leading1_check = !((x >> 31) ^ 0);
+    x = x << leading1_check;
+
+    int remain1_check = !((x >> 31) ^ 0);
+    x = x << remain1_check;
+
+    int leadingZero = leading16 + leading8 + leading4 + leading2 +
+                      leading1_check + remain1_check;
+
+    return 31 + ~leadingZero + 1;
 }
 
 /*
