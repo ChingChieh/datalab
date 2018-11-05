@@ -627,7 +627,26 @@ unsigned floatAbsVal(unsigned uf)
  */
 int floatFloat2Int(unsigned uf)
 {
-    return 42;
+    // 0________1011100110
+    int exp = (uf >> 23) & 0xFF;
+    int outofRange = !(exp ^ 0xFF);
+    int diff = exp - 127;
+    if (outofRange || diff > 31) {
+        return 0x80000000U;
+    }
+    if (!(uf << 1)) {
+        return 0;
+    }
+    if (diff < 0) {
+        return 0;
+    }
+    int tail = uf & 0x7FFFFF;
+    unsigned result;
+    result = (0x80000000 | (tail << 8)) >> (31 - diff);
+    if (uf >> 31) {
+        result = ~result + 1;
+    }
+    return result;
 }
 
 /*
@@ -710,32 +729,30 @@ int floatIsEqual(unsigned uf, unsigned ug)
  */
 int floatIsLess(unsigned uf, unsigned ug)
 {
-    if (!((uf | ug) + 0x80000000)) {
+    unsigned fIsNan = (uf << 1) > 0xFF000000;
+    unsigned gIsNan = (ug << 1) > 0xFF000000;
+    if (fIsNan || gIsNan) {
         return 0;
     }
-    int check = ((uf >> 23) & 0xFF) ^ 0xFF;
-    check = !check;
-    int m = (uf << 9);
-    if (check && m) {
+    int fLeftShift1 = uf << 1;
+    int gLeftShift1 = ug << 1;
+    if (fLeftShift1 == gLeftShift1 && fLeftShift1 == 0) {
         return 0;
     }
-    check = ((ug >> 23) & 0xFF) ^ 0xFF;
-    check = !check;
-    m = (ug << 9);
-    if (check && m) {
-        return 0;
-    }
-    if ((uf >> 31) == 1 && (ug >> 31) == 0) {
-        return 0;
-    }
-    if ((uf >> 31) == 0 && (ug >> 31) == 1) {
+    unsigned f_sign = uf >> 31;
+    unsigned g_sign = ug >> 31;
+    if (g_sign < f_sign) {
         return 1;
     }
-    unsigned diff = uf - ug;
-    if (((diff >> 31) ^ 1) & uf) {
-        return 1;
+    if (g_sign > f_sign) {
+        return 0;
     }
-
+    if (g_sign) {
+        return ug < uf;
+    }
+    if (!g_sign) {
+        return ug > uf;
+    }
     return 0;
 }
 
